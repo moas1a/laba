@@ -7,7 +7,7 @@ namespace MyApp // Note: actual namespace depends on the project name.
         static void Main(string[] args)
         {
             Console.WriteLine("kk");
-            Console.WriteLine("qq ww")
+            Console.WriteLine("qq ww");
         }
     }
 }
