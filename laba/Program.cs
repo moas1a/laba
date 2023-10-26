@@ -8,6 +8,7 @@ namespace MyApp
         {
             Console.WriteLine("kk");
             Console.WriteLine("Zapushiloc'");
+            Console.WriteLine("Zaebalo");
         }
     }
 }
