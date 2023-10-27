@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
+using System.Linq;
 
 public static class JsonHelper
 {
@@ -84,7 +85,8 @@ class Program {
             Console.WriteLine("\nВыберите действие:");
             Console.WriteLine("1. Начать игру");
             Console.WriteLine("2. Новый игрок");
-            Console.WriteLine("3. Выйти из игры");
+            Console.WriteLine("3. Список Лидеров:)");
+            Console.WriteLine("4. Выход из игры!");
 
             int choice = GetValidInput(1, 4);
 
@@ -102,7 +104,7 @@ class Program {
                     break;
                 case 4:
                     Console.WriteLine("Выход из игры.");
-                    gameRunning = false;
+                    Environment.Exit(1);
                     break;
             }
         }
@@ -179,6 +181,7 @@ class Program {
                 } else {
                     Console.WriteLine("К сожалению, компьютер победил.");
                 }
+                JsonHelper.SavePlayersToFile(players, "players.json");  // сохраняем данные
                 break;
             }
 
