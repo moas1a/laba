@@ -49,4 +49,32 @@ class Program
         Players.Add(new Player(login, password));
         Console.WriteLine("Профиль игрока успешно создан!");
     }
+
+    static void GetValidInput(int min, int max)
+    {
+        int input = 0;
+        bool isValid = true;
+
+        while (!isValid)
+        {
+            try
+            {
+                input = int.Parse(Console.ReadLine());
+
+                if (input >= min && input <= max)
+                {
+                    isValid = true;
+                }
+                else
+                {
+                    Console.WriteLine($"Введите число от {min} до {max}.");
+                }
+            } catch {
+                    Console.WriteLine("Некорректный ввод. Повторите попытку.");
+                {
+
+                }
+            }
+        }
+    }
 }
