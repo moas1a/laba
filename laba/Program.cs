@@ -33,12 +33,20 @@ class Program
             Console.WriteLine("1.Начать игру");
             Console.WriteLine("2.Новый игрок");
             Console.WriteLine("3.Выйти из игры");
-
-            int choice = GetValidInput(1, 3);
-        }
-        {
             
         }
+        
     }
 
+    static void CreateProfile()
+    {
+        Console.WriteLine("Введите имя нового игрока: ");
+        string login = Console.ReadLine();
+        
+        Console.WriteLine("Введите пароль для нового игрока: ");
+        string password = Console.ReadLine();
+
+        Players.Add(new Player(login, password));
+        Console.WriteLine("Профиль игрока успешно создан!");
+    }
 }
