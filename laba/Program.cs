@@ -1,80 +1,143 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-class Player
-{
-    public string Login { get; set; }
+
+class Player {
+    public string Name { get; set; }
     public string Password { get; set; }
-    
-    public Player(string Login, string Password)
-    {
-        Login = Login;
-        Password = Password;
+
+    public Player(string name, string password) {
+        Name = name;
+        Password = password;
     }
 }
 
-class Program
-{
-    private static int sticks = 20;
-    private static int sticksTaken = 0;
-    private static int currentPlayer = 1;
-    private static Random random = new Random();
-    private static List<Player> Players = new List<Player>();
+class Program {
+    static int sticks = 20;
+    static int sticksTaken = 0;
+    static int currentPlayer = 1;
+    static Random random = new Random();
+    static List<Player> players = new List<Player>();
 
-    static void Main(string[] args)
-    {
+    static void Main(string[] args) {
         Console.WriteLine("Добро пожаловать в игру Ним!");
 
         bool gameRunning = true;
 
-        while (gameRunning)
-        {
-            Console.WriteLine("\nВыберите действие: ");
-            Console.WriteLine("1.Начать игру");
-            Console.WriteLine("2.Новый игрок");
-            Console.WriteLine("3.Выйти из игры");
-            
+        while (gameRunning) {
+            Console.WriteLine("\nВыберите действие:");
+            Console.WriteLine("1. Начать игру");
+            Console.WriteLine("2. Новый игрок");
+            Console.WriteLine("3. Выйти из игры");
+
+            int choice = GetValidInput(1, 3);
+
+            switch (choice) {
+                case 1:
+                    PlayGame();
+                    break;
+                case 2:
+                    CreateProfile();
+                    break;
+                case 3:
+                    Console.WriteLine("Выход из игры.");
+                    gameRunning = false;
+                    break;
+            }
         }
-        
+
+        Console.ReadLine();
     }
 
-    static void CreateProfile()
-    {
-        Console.WriteLine("Введите имя нового игрока: ");
-        string login = Console.ReadLine();
-        
-        Console.WriteLine("Введите пароль для нового игрока: ");
+    static void PlayGame() {
+        if (players.Count == 0) {
+            Console.WriteLine("Нет доступных профилей. Создайте новый профиль.");
+            return;
+        }
+
+        Console.WriteLine("\nВыберите профиль:");
+
+        for (int i = 0; i < players.Count; i++) {
+            Console.WriteLine($"{i + 1}. {players[i].Name}");
+        }
+
+        int profileIndex = GetValidInput(1, players.Count) - 1;
+
+        Console.Write("Введите пароль: ");
         string password = Console.ReadLine();
 
-        Players.Add(new Player(login, password));
+        if (password != players[profileIndex].Password) {
+            Console.WriteLine("Неверный пароль. Игра не может быть начата.");
+            return;
+        }
+
+        sticks = 20;
+        currentPlayer = 1;
+
+        Console.WriteLine("\nИгра началась!");
+
+        while (sticks > 0) {
+            Console.WriteLine("\nНа столе осталось " + sticks + " палочек.");
+
+            if (currentPlayer == 1) {
+                Console.Write("Ваш ход. Сколько палочек вы хотите взять (1-3)? ");
+                sticksTaken = GetValidInput(1, 3);
+            } else {
+                sticksTaken = GetComputerMove();
+                Console.WriteLine("Ход компьютера: " + sticksTaken);
+            }
+
+            sticks -= sticksTaken;
+
+            if (sticks <= 0) {
+                if (currentPlayer == 1) {
+                    Console.WriteLine("Поздравляем! Вы победили!");
+                } else {
+                    Console.WriteLine("К сожалению, компьютер победил.");
+                }
+                break;
+            }
+
+            currentPlayer = currentPlayer == 1 ? 2 : 1;
+        }
+    }
+
+    static void CreateProfile() {
+        Console.Write("Введите имя нового игрока: ");
+        string name = Console.ReadLine();
+
+        Console.Write("Введите пароль для нового игрока: ");
+        string password = Console.ReadLine();
+
+        players.Add(new Player(name, password));
         Console.WriteLine("Профиль игрока успешно создан!");
     }
 
-    static void GetValidInput(int min, int max)
-    {
+    static int GetValidInput(int min, int max) {
         int input = 0;
-        bool isValid = true;
+        bool isValid = false;
 
-        while (!isValid)
-        {
-            try
-            {
+        while (!isValid) {
+            try {
                 input = int.Parse(Console.ReadLine());
 
-                if (input >= min && input <= max)
-                {
+                if (input >= min && input <= max) {
                     isValid = true;
-                }
-                else
-                {
+                } else {
                     Console.WriteLine($"Введите число от {min} до {max}.");
                 }
             } catch {
-                    Console.WriteLine("Некорректный ввод. Повторите попытку.");
-                {
-
-                }
+                Console.WriteLine("Некорректный ввод. Повторите попытку.");
             }
         }
+
+        return input;
+    }
+
+    static int GetComputerMove() {
+        if (sticks == 1) {
+            return 1;
+        }
+
+        return random.Next(1, 4);
     }
 }
