@@ -3,12 +3,12 @@ using System.Collections.Generic;
 
 class Player
 {
-    public string Name { get; set; }
+    public string Login { get; set; }
     public string Password { get; set; }
     
-    public Player(string Name, string Password)
+    public Player(string Login, string Password)
     {
-        Name = Name;
+        Login = Login;
         Password = Password;
     }
 }
