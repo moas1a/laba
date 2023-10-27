@@ -1,14 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 
-namespace MyApp // Note: actual namespace depends on the project name.
+class Player
 {
-    internal class Program
+    public string Name { get; set; }
+    public string Password { get; set; }
+    
+    public Player(string Name, string Password)
     {
-        static void Main(string[] args)
-        {
-            Console.WriteLine("kk");
-            Console.WriteLine("qq ww");
-        }
+        Name = Name;
+        Password = Password;
     }
 }
-
