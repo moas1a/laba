@@ -40,6 +40,7 @@ namespace laba
 
         static void Main(string[] args)
         {
+            LoadPlayersFromFile("players.json");
             Console.WriteLine("Добро пожаловать в игру Ним!");
 
             bool gameRunning = true;
@@ -69,7 +70,7 @@ namespace laba
                         break;
                     case 4:
                         Console.WriteLine("Выход из игры.");
-                        Environment.Exit(1);
+                        gameRunning = false;
                         break;
                 }
             }
@@ -84,11 +85,13 @@ namespace laba
                 Console.WriteLine("Нет доступных профилей.");
                 return;
             }
+
             var sortedPlayers = _players.OrderBy(p => p.AverageMovesPerWin()).ToList();
             Console.WriteLine("\nТаблица лидеров:");
             for (var i = 0; i < sortedPlayers.Count; i++)
             {
-                Console.WriteLine($"{i + 1}. {sortedPlayers[i].Name} - среднее число ходов за игру: {sortedPlayers[i].AverageMovesPerWin()}");
+                Console.WriteLine(
+                    $"{i + 1}. {sortedPlayers[i].Name} - среднее число ходов за игру: {sortedPlayers[i].AverageMovesPerWin()}");
             }
         }
 
@@ -133,6 +136,7 @@ namespace laba
                     _players[profileIndex].GameProgress = 0;
                     Console.WriteLine("Прогресс игры сброшен.");
                 }
+
             }
 
             _sticks = 20;
@@ -148,6 +152,15 @@ namespace laba
 
                 if (_currentPlayer == 1)
                 {
+                    ConsoleKeyInfo keyInfo = Console.ReadKey();
+                    if (keyInfo.Modifiers == ConsoleModifiers.Control && keyInfo.Key == ConsoleKey.S)
+                    {
+                        _players[profileIndex].GameProgress = 20 - _sticks; // Сохраняем прогресс игры
+                        JsonHelper.SavePlayersToFile(_players, "players.json");
+                        Console.WriteLine("\nПрогресс игры сохранен!");
+                        continue;
+                    }
+
                     Console.Write("Ваш ход. Сколько палочек вы хотите взять (1-3)? ");
                     _sticksTaken = GetValidInput(1, 3);
                 }
@@ -156,9 +169,10 @@ namespace laba
                     _sticksTaken = GetComputerMove();
                     Console.WriteLine("Ход компьютера: " + _sticksTaken);
                 }
+
                 if (_currentPlayer == 1)
                 {
-                    playerMoves++;  // увеличиваем количество ходов игрока
+                    playerMoves++; // увеличиваем количество ходов игрока
                 }
 
                 _sticks -= _sticksTaken;
@@ -174,12 +188,12 @@ namespace laba
                         _players[profileIndex].GameProgress = 0;
                     }
 
-                    if (_currentPlayer == 1)  _players[profileIndex].WinsCount++;
+                    if (_currentPlayer == 1) _players[profileIndex].WinsCount++;
 
                     return;
                 }
 
-                _currentPlayer = _currentPlayer == 1 ? 2 : 1;  // меняем игрока
+                _currentPlayer = _currentPlayer == 1 ? 2 : 1; // меняем игрока
             }
         }
 
@@ -214,14 +228,24 @@ namespace laba
             var player = new Player(name, password);
             _players.Add(player);
         }
-    }
 
-    public static class JsonHelper
-    {
-        public static void SavePlayersToFile(List<Player> players, string filename)
+        private static void LoadPlayersFromFile(string filename)
         {
-            string json = JsonConvert.SerializeObject(players);
-            File.WriteAllText(filename, json);
+            if (File.Exists(filename))
+            {
+                string json = File.ReadAllText(filename);
+                _players = JsonConvert.DeserializeObject<List<Player>>(json);
+            }
+        }
+
+        public static class JsonHelper
+        {
+            public static void SavePlayersToFile(List<Player> players, string filename)
+            {
+                string json = JsonConvert.SerializeObject(players);
+                File.WriteAllText(filename, json);
+            }
         }
     }
 }
+
