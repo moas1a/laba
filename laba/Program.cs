@@ -6,61 +6,13 @@ using System.Linq;
 
 namespace laba
 {
-    public static class JsonHelper
-    {
-        public static void SavePlayersToFile(List<Player> players, string filePath)
-        {
-            try
-            {
-                var json = JsonConvert.SerializeObject(players, Formatting.Indented);
-                File.WriteAllText(filePath, json);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Ошибка при сохранении данных: " + ex.Message);
-            }
-        }
-
-        public static List<Player> LoadPlayersFromFile(string filePath)
-        {
-            try
-            {
-                if (!File.Exists(filePath)) return new List<Player>();
-                var json = File.ReadAllText(filePath);
-                return JsonConvert.DeserializeObject<List<Player>>(json) ?? new List<Player>();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Ошибка при загрузке данных: " + ex.Message);
-                return new List<Player>();
-            }
-        }
-
-        public static void SaveDictionaryToJsonFile(Dictionary<string, string> dictionary, string filePath)
-        {
-            try
-            {
-                // Конвертируем словарь в строку JSON
-                string json = JsonConvert.SerializeObject(dictionary, Formatting.Indented);
-
-                // Сохраняем JSON строку в файл
-                File.WriteAllText(filePath, json);
-
-                Console.WriteLine("Данные успешно сохранены в файл: " + filePath);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Возникла ошибка при сохранении данных: " + ex.Message);
-            }
-        }
-    }
-
     public class Player
     {
         public string Name { get; set; }
         public string Password { get; set; }
         public int TotalMoves { get; set; }
         public int WinsCount { get; set; }
+        public int GameProgress { get; set; }
 
         public Player(string name, string password)
         {
@@ -68,6 +20,7 @@ namespace laba
             Password = password;
             TotalMoves = 0;
             WinsCount = 0;
+            GameProgress = 0;
         }
 
         public float AverageMovesPerWin()
@@ -87,7 +40,6 @@ namespace laba
 
         static void Main(string[] args)
         {
-            _players = JsonHelper.LoadPlayersFromFile("players.json");
             Console.WriteLine("Добро пожаловать в игру Ним!");
 
             bool gameRunning = true;
@@ -97,8 +49,8 @@ namespace laba
                 Console.WriteLine("\nВыберите действие:");
                 Console.WriteLine("1. Начать игру");
                 Console.WriteLine("2. Новый игрок");
-                Console.WriteLine("3. Список Лидеров:)");
-                Console.WriteLine("4. Выход из игры!");
+                Console.WriteLine("3. Список Лидеров");
+                Console.WriteLine("4. Выход из игры");
 
                 int choice = GetValidInput(1, 4);
 
@@ -166,6 +118,23 @@ namespace laba
                 return;
             }
 
+            if (_players[profileIndex].GameProgress > 0)
+            {
+                Console.WriteLine("Обнаружен прогресс игры. Загрузить? (Y/N)");
+                string answer = Console.ReadLine().ToLower();
+                if (answer == "y")
+                {
+                    _sticks = 20 - _players[profileIndex].GameProgress;
+                    _currentPlayer = _players[profileIndex].GameProgress % 2 + 1;
+                    Console.WriteLine("Прогресс игры успешно загружен.");
+                }
+                else
+                {
+                    _players[profileIndex].GameProgress = 0;
+                    Console.WriteLine("Прогресс игры сброшен.");
+                }
+            }
+
             _sticks = 20;
             _currentPlayer = 1;
 
@@ -199,8 +168,11 @@ namespace laba
                     Console.WriteLine("Игрок " + _currentPlayer + " проиграл!");
                     Console.WriteLine("Количество ходов игрока " + _currentPlayer + ": " + playerMoves);
 
-                    if (!(_players.Count < profileIndex))  
+                    if (!(profileIndex >= _players.Count))
+                    {
                         _players[profileIndex].TotalMoves += playerMoves;
+                        _players[profileIndex].GameProgress = 0;
+                    }
 
                     if (_currentPlayer == 1)  _players[profileIndex].WinsCount++;
 
@@ -243,5 +215,13 @@ namespace laba
             _players.Add(player);
         }
     }
-}
 
+    public static class JsonHelper
+    {
+        public static void SavePlayersToFile(List<Player> players, string filename)
+        {
+            string json = JsonConvert.SerializeObject(players);
+            File.WriteAllText(filename, json);
+        }
+    }
+}
