@@ -97,6 +97,8 @@ namespace laba
 
         static void PlayGame()
         {
+            bool isLoaded = false;
+
             if (_players.Count == 0)
             {
                 Console.WriteLine("Нет доступных профилей. Создайте новый профиль.");
@@ -130,6 +132,7 @@ namespace laba
                     _sticks = 20 - _players[profileIndex].GameProgress;
                     _currentPlayer = _players[profileIndex].GameProgress % 2 + 1;
                     Console.WriteLine("Прогресс игры успешно загружен.");
+                    isLoaded = true;
                 }
                 else
                 {
@@ -139,8 +142,10 @@ namespace laba
 
             }
 
-            _sticks = 20;
-            _currentPlayer = 1;
+            if (!isLoaded) { 
+                _sticks = 20;
+                _currentPlayer = 1;
+            }
 
             Console.WriteLine("\nИгра началась!");
 
@@ -152,17 +157,8 @@ namespace laba
 
                 if (_currentPlayer == 1)
                 {
-                    ConsoleKeyInfo keyInfo = Console.ReadKey();
-                    if (keyInfo.Modifiers == ConsoleModifiers.Control && keyInfo.Key == ConsoleKey.S)
-                    {
-                        _players[profileIndex].GameProgress = 20 - _sticks; // Сохраняем прогресс игры
-                        JsonHelper.SavePlayersToFile(_players, "players.json");
-                        Console.WriteLine("\nПрогресс игры сохранен!");
-                        continue;
-                    }
-
                     Console.Write("Ваш ход. Сколько палочек вы хотите взять (1-3)? ");
-                    _sticksTaken = GetValidInput(1, 3);
+                    _sticksTaken = GetValidInput(1, 3, true, profileIndex);
                 }
                 else
                 {
@@ -197,14 +193,66 @@ namespace laba
             }
         }
 
-        static int GetValidInput(int min, int max)
+        static void SaveTheGame(int? profileIndex)
+        {
+            _players[profileIndex.Value].GameProgress = 20 - _sticks; // Сохраняем прогресс игры
+            JsonHelper.SavePlayersToFile(_players, "players.json");
+            Console.WriteLine("\nПрогресс игры сохранен!");
+        }
+
+        //static int GetValidInput(int min, int max, bool isGame=false, int? profileIndex=null)
+        //{
+        //    int input = min - 1;
+        //    while (input < min || input > max)
+        //    {
+        //        if (int.TryParse(Console.ReadLine(), out int tests))
+        //        {
+        //            input = tests;
+        //        }
+        //    }
+
+        //    return input;
+        //}
+
+        static int GetValidInput(int min, int max, bool isGame = false, int? profileIndex = null)
         {
             int input = min - 1;
+            string inputBuffer = ""; // Буфер для сбора введенных цифр
+
             while (input < min || input > max)
             {
-                if (int.TryParse(Console.ReadLine(), out int tests))
+                ConsoleKeyInfo keyInfo = Console.ReadKey(intercept: true);
+
+                // Обработка Ctrl+S для сохранения игры
+                if (keyInfo.Modifiers == ConsoleModifiers.Control && keyInfo.Key == ConsoleKey.S && isGame)
                 {
-                    input = tests;
+                    SaveTheGame(profileIndex);
+                }
+                // Обработка числового ввода
+                else if (char.IsDigit(keyInfo.KeyChar))
+                {
+                    inputBuffer += keyInfo.KeyChar;
+                    Console.Write(keyInfo.KeyChar); // Отображаем введенную цифру
+                }
+                // Обработка стирания символов
+                else if (keyInfo.Key == ConsoleKey.Backspace && inputBuffer.Length > 0)
+                {
+                    inputBuffer = inputBuffer.Remove(inputBuffer.Length - 1);
+                    Console.Write("\b \b"); // Стираем символ с консоли
+                }
+                // Обработка нажатия Enter
+                else if (keyInfo.Key == ConsoleKey.Enter && inputBuffer.Length > 0)
+                {
+                    if (int.TryParse(inputBuffer, out int tests) && tests >= min && tests <= max)
+                    {
+                        input = tests;
+                        Console.Write(keyInfo.KeyChar);
+                    }
+                    else
+                    {
+                        // Console.WriteLine("\nНеверный ввод. Попробуйте еще раз:");
+                        inputBuffer = ""; // Очищаем буфер, если введено некорректное значение
+                    }
                 }
             }
 
