@@ -38,8 +38,8 @@ namespace laba
         private static int _sticks;
         private static int _sticksTaken;
         private static int _currentPlayer;
-        private static readonly Random Random = new Random();
-        private static List<Player> _players = new List<Player>();
+        private static readonly Random Random = new();
+        private static List<Player> _players = new();
 
         // Основной метод входа в программу
         static void Main()
@@ -85,7 +85,7 @@ namespace laba
             Console.ReadLine();
         }
 
-        static void ShowLeaderboard()
+        static void ShowLeaderboard() //показать таблицу лидеров
         {
             if (_players.Count == 0)
             {
@@ -102,7 +102,7 @@ namespace laba
             }
         }
 
-        static void PlayGame()
+        static void PlayGame() //начать игру
         {
             bool isLoaded = false;
 
@@ -122,7 +122,7 @@ namespace laba
             int profileIndex = GetValidInput(1, _players.Count) - 1;
 
             Console.Write("Введите пароль: ");
-            string password = Console.ReadLine();
+            string? password = Console.ReadLine();
 
             if (password != _players[profileIndex].Password)
             {
@@ -202,7 +202,7 @@ namespace laba
             }
         }
 
-        static void SaveTheGame(int? profileIndex)
+        static void SaveTheGame(int? profileIndex) // сохранение игры для профиля игрока
         {
             _players[profileIndex.Value].GameProgress = 20 - _sticks; // Сохраняем прогресс игры
             JsonHelper.SavePlayersToFile(_players, "players.json");
@@ -223,7 +223,7 @@ namespace laba
         //    return input;
         //}
 
-        static int GetValidInput(int min, int max, bool isGame = false, int? profileIndex = null)
+        static int GetValidInput(int min, int max, bool isGame = false, int? profileIndex = null) // проверка сохраненной игры по указонному индексу
         {
             ConsoleKeyInfo keyInfo;
 
@@ -243,38 +243,38 @@ namespace laba
             return int.Parse(keyInfo.KeyChar.ToString());
         }
 
-        static int GetComputerMove()
+        static int GetComputerMove() //создаем ограничение компьютера по выбору палочек
         {
             int taken = Random.Next(1, Math.Min(3, _sticks));
             return taken;
         }
 
-        static void CreateProfile()
+        static void CreateProfile() // создаем профиль
         {
             Console.Write("Введите имя нового игрока: ");
-            string name = Console.ReadLine();
+            string? name = Console.ReadLine();
 
             Console.Write("Введите пароль нового игрока: ");
-            string password = Console.ReadLine();
+            string? password = Console.ReadLine();
 
             var player = new Player(name, password);
             _players.Add(player);
         }
 
-        private static void LoadPlayersFromFile(string filename)
+        private static void LoadPlayersFromFile(string filename) //загружаем список игроков в формате json по указанному имени файла
         {
             if (File.Exists(filename))
             {
-                string json = File.ReadAllText(filename);
+                string? json = File.ReadAllText(filename); 
                 _players = JsonConvert.DeserializeObject<List<Player>>(json);
             }
         }
 
-        public static class JsonHelper
+        public static class JsonHelper 
         {
             public static void SavePlayersToFile(List<Player> players, string filename)
             {
-                string json = JsonConvert.SerializeObject(players);
+                string? json = JsonConvert.SerializeObject(players);
                 File.WriteAllText(filename, json);
             }
         }
