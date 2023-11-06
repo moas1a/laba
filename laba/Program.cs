@@ -32,6 +32,8 @@ namespace laba
     }
     
     // Класс Program с логикой игры
+
+
     class Program
     {
         // Инициализация и объявление переменных
@@ -134,6 +136,7 @@ namespace laba
             {
                 Console.WriteLine("Обнаружен прогресс игры. Загрузить? (Y/N)");
                 string answer = Console.ReadLine().ToLower();
+                // тут может вылететь 0, пропадет тогда сохраненная игра
                 if (answer == "y")
                 {
                     _sticks = 20 - _players[profileIndex].GameProgress;
@@ -146,7 +149,7 @@ namespace laba
                     _players[profileIndex].GameProgress = 0;
                     Console.WriteLine("Прогресс игры сброшен.");
                 }
-
+                
             }
 
             if (!isLoaded) { 
@@ -202,13 +205,15 @@ namespace laba
             }
         }
 
-        static void SaveTheGame(int? profileIndex) // сохранение игры для профиля игрока
+        static void SaveTheGame(int? profileIndex, List<Player> _players) //сохраняем прогресс игры для определенного профиля
         {
-            _players[profileIndex.Value].GameProgress = 20 - _sticks; // Сохраняем прогресс игры
-            JsonHelper.SavePlayersToFile(_players, "players.json");
-            Console.WriteLine("\nПрогресс игры сохранен!");
+            if (profileIndex != null) // Проверяется, что "profileIndex" не равен нулю. Если "profileIndex" не равен нулю, то он используется для получения конкретного игрового профиля из списка "players".
+            {
+                _players[index: profileIndex.Value].GameProgress = 20 - _sticks;
+                JsonHelper.SavePlayersToFile(_players, "players.json");
+                Console.WriteLine("\nПрогресс игры сохранен!");
+            }
         }
-
         //static int GetValidInput(int min, int max, bool isGame=false, int? profileIndex=null)
         //{
         //    int input = min - 1;
@@ -234,7 +239,7 @@ namespace laba
                 // Обработка Ctrl + S для сохранения игры
                 if (keyInfo.Modifiers == ConsoleModifiers.Control && keyInfo.Key == ConsoleKey.S && isGame)
                 {
-                    SaveTheGame(profileIndex);
+                    SaveTheGame(profileIndex, _players);
                     return -1;
                 }
 
@@ -252,25 +257,28 @@ namespace laba
         static void CreateProfile() // создаем профиль
         {
             Console.Write("Введите имя нового игрока: ");
-            string? name = Console.ReadLine();
+            string name = Console.ReadLine() ??string.Empty;
 
             Console.Write("Введите пароль нового игрока: ");
-            string? password = Console.ReadLine();
+            string password = Console.ReadLine() ??string.Empty;
 
-            var player = new Player(name, password);
+            Player player = new(name, password);
             _players.Add(player);
         }
 
-        private static void LoadPlayersFromFile(string filename) //загружаем список игроков в формате json по указанному имени файла
+        private static void LoadPlayersFromFile(string filename)
         {
             if (File.Exists(filename))
             {
-                string? json = File.ReadAllText(filename); 
-                _players = JsonConvert.DeserializeObject<List<Player>>(json);
+                string json = File.ReadAllText(filename) ?? string.Empty;
+               _players = JsonConvert.DeserializeObject<List<Player>>(json) ?? new List<Player>();
+            }
+            else
+            {
+               _players = new List<Player>();
             }
         }
-
-        public static class JsonHelper 
+        public static class JsonHelper //сохраняем список игроков 
         {
             public static void SavePlayersToFile(List<Player> players, string filename)
             {
