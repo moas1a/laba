@@ -1,50 +1,57 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using Newtonsoft.Json;
-using System.Linq;
+﻿using Newtonsoft.Json;// Использование библиотеки Newtonsoft для работы с JSON-форматом
+
 
 namespace laba
 {
+    // Определение класса Player
     public class Player
     {
+        // Свойства объектов Player
         public string Name { get; set; }
         public string Password { get; set; }
         public int TotalMoves { get; set; }
         public int WinsCount { get; set; }
         public int GameProgress { get; set; }
-
+        
+        // Конструктор Player с проверкой на Null значение
         public Player(string name, string password)
         {
-            Name = name;
-            Password = password;
+            Name = name ?? throw new ArgumentNullException(nameof(name));
+            Password = password ?? throw new ArgumentNullException(nameof(password));
             TotalMoves = 0;
             WinsCount = 0;
             GameProgress = 0;
         }
-
+        
+        // Метод для подсчета среднего кол-ва ходов на победу
         public float AverageMovesPerWin()
         {
             if (WinsCount == 0) return TotalMoves;
             return (float) TotalMoves / WinsCount;
         }
     }
-
+    
+    // Класс Program с логикой игры
     class Program
     {
-        private static int _sticks = 20;
-        private static int _sticksTaken = 0;
-        private static int _currentPlayer = 1;
-        private static Random _random = new Random();
+        // Инициализация и объявление переменных
+        private static int _sticks;
+        private static int _sticksTaken;
+        private static int _currentPlayer;
+        private static readonly Random Random = new Random();
         private static List<Player> _players = new List<Player>();
 
-        static void Main(string[] args)
+        // Основной метод входа в программу
+        static void Main()
         {
+            // Загрузка игроков из файла
             LoadPlayersFromFile("players.json");
             Console.WriteLine("Добро пожаловать в игру Ним!");
-
+            
+            // Запускаем игру и отображаем главное меню
             bool gameRunning = true;
-
+            
+            // Главный игровой цикл
             while (gameRunning)
             {
                 Console.WriteLine("\nВыберите действие:");
@@ -158,7 +165,9 @@ namespace laba
                 if (_currentPlayer == 1)
                 {
                     Console.Write("Ваш ход. Сколько палочек вы хотите взять (1-3)? ");
-                    _sticksTaken = GetValidInput(1, 3, true, profileIndex);
+                    var inputForValidation = GetValidInput(1, 3, true, profileIndex);
+                    if (inputForValidation == -1) return;
+                    _sticksTaken = inputForValidation;
                 }
                 else
                 {
@@ -216,52 +225,27 @@ namespace laba
 
         static int GetValidInput(int min, int max, bool isGame = false, int? profileIndex = null)
         {
-            int input = min - 1;
-            string inputBuffer = ""; // Буфер для сбора введенных цифр
+            ConsoleKeyInfo keyInfo;
 
-            while (input < min || input > max)
+            do
             {
-                ConsoleKeyInfo keyInfo = Console.ReadKey(intercept: true);
+                keyInfo = Console.ReadKey(intercept: true);
 
-                // Обработка Ctrl+S для сохранения игры
+                // Обработка Ctrl + S для сохранения игры
                 if (keyInfo.Modifiers == ConsoleModifiers.Control && keyInfo.Key == ConsoleKey.S && isGame)
                 {
                     SaveTheGame(profileIndex);
+                    return -1;
                 }
-                // Обработка числового ввода
-                else if (char.IsDigit(keyInfo.KeyChar))
-                {
-                    inputBuffer += keyInfo.KeyChar;
-                    Console.Write(keyInfo.KeyChar); // Отображаем введенную цифру
-                }
-                // Обработка стирания символов
-                else if (keyInfo.Key == ConsoleKey.Backspace && inputBuffer.Length > 0)
-                {
-                    inputBuffer = inputBuffer.Remove(inputBuffer.Length - 1);
-                    Console.Write("\b \b"); // Стираем символ с консоли
-                }
-                // Обработка нажатия Enter
-                else if (keyInfo.Key == ConsoleKey.Enter && inputBuffer.Length > 0)
-                {
-                    if (int.TryParse(inputBuffer, out int tests) && tests >= min && tests <= max)
-                    {
-                        input = tests;
-                        Console.Write(keyInfo.KeyChar);
-                    }
-                    else
-                    {
-                        // Console.WriteLine("\nНеверный ввод. Попробуйте еще раз:");
-                        inputBuffer = ""; // Очищаем буфер, если введено некорректное значение
-                    }
-                }
-            }
 
-            return input;
+            } while (!int.TryParse(keyInfo.KeyChar.ToString(), out int input) || input < min || input > max);
+
+            return int.Parse(keyInfo.KeyChar.ToString());
         }
 
         static int GetComputerMove()
         {
-            int taken = _random.Next(1, Math.Min(3, _sticks));
+            int taken = Random.Next(1, Math.Min(3, _sticks));
             return taken;
         }
 
