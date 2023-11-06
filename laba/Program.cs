@@ -136,9 +136,8 @@ namespace laba
             {
                 Console.WriteLine("Обнаружен прогресс игры. Загрузить? (Y/N)");
 
-                string answer = Console.ReadLine().ToLower();
-
-                // тут может вылететь 0, пропадет тогда сохраненная игра
+                string? answer = Console.ReadLine()?.ToLower(); 
+           
                 if (answer == "y")
                 {
                     _sticks = 20 - _players[profileIndex].GameProgress;
