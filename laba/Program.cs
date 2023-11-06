@@ -135,7 +135,9 @@ namespace laba
             if (_players[profileIndex].GameProgress > 0)
             {
                 Console.WriteLine("Обнаружен прогресс игры. Загрузить? (Y/N)");
+
                 string answer = Console.ReadLine().ToLower();
+
                 // тут может вылететь 0, пропадет тогда сохраненная игра
                 if (answer == "y")
                 {
@@ -266,7 +268,7 @@ namespace laba
             _players.Add(player);
         }
 
-        private static void LoadPlayersFromFile(string filename)
+        private static void LoadPlayersFromFile(string filename) //загрузка данных об игроках из файла в программу
         {
             if (File.Exists(filename))
             {
