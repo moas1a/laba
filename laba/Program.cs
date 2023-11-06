@@ -136,9 +136,9 @@ namespace laba
             {
                 Console.WriteLine("Обнаружен прогресс игры. Загрузить? (Y/N)");
 
-                string? answer = Console.ReadLine()?.ToLower(); 
-           
-                if (answer == "y")
+                string? answer = Console.ReadLine()?.ToLower();
+
+            if (answer == "y")
                 {
                     _sticks = 20 - _players[profileIndex].GameProgress;
                     _currentPlayer = _players[profileIndex].GameProgress % 2 + 1;
@@ -206,28 +206,34 @@ namespace laba
             }
         }
 
-        static void SaveTheGame(int? profileIndex, List<Player> _players) //сохраняем прогресс игры для определенного профиля
+        // static void SaveTheGame(int? profileIndex, List<Player> _players) //сохраняем прогресс игры для определенного профиля
+        // {
+        //     if (profileIndex != null) // Проверяется, что "profileIndex" не равен нулю. Если "profileIndex" не равен нулю, то он используется для получения конкретного игрового профиля из списка "players".
+        //     {
+        //         _players[index: profileIndex.Value].GameProgress = 20 - _sticks;
+        //         JsonHelper.SavePlayersToFile(_players, "players.json");
+        //         Console.WriteLine("\nПрогресс игры сохранен!");
+        //     }
+        // }
+        
+        static void SaveTheGame(int? profileIndex, List<Player> players) //сохраняем прогресс игры для определенного профиля
         {
-            if (profileIndex != null) // Проверяется, что "profileIndex" не равен нулю. Если "profileIndex" не равен нулю, то он используется для получения конкретного игрового профиля из списка "players".
+            if (profileIndex.HasValue) // Проверяем, что "profileIndex" имеет значение. Если это так, то используем его для получения конкретного игрового профиля из списка "players".
             {
-                _players[index: profileIndex.Value].GameProgress = 20 - _sticks;
-                JsonHelper.SavePlayersToFile(_players, "players.json");
-                Console.WriteLine("\nПрогресс игры сохранен!");
+                int index = profileIndex.Value;
+
+                if (index >= 0 && index < players.Count) // Проверяем, что индекс находится в допустимом диапазоне.
+                {
+                    players[index].GameProgress = 20 - _sticks;
+                    JsonHelper.SavePlayersToFile(players, "players.json");
+                    Console.WriteLine("\nПрогресс игры сохранен!");
+                }
+                else
+                {
+                    Console.WriteLine("\nНеверный индекс профиля!");
+                }
             }
         }
-        //static int GetValidInput(int min, int max, bool isGame=false, int? profileIndex=null)
-        //{
-        //    int input = min - 1;
-        //    while (input < min || input > max)
-        //    {
-        //        if (int.TryParse(Console.ReadLine(), out int tests))
-        //        {
-        //            input = tests;
-        //        }
-        //    }
-
-        //    return input;
-        //}
 
         static int GetValidInput(int min, int max, bool isGame = false, int? profileIndex = null) // проверка сохраненной игры по указонному индексу
         {
@@ -271,7 +277,7 @@ namespace laba
         {
             if (File.Exists(filename))
             {
-                string json = File.ReadAllText(filename) ?? string.Empty;
+                string json = File.ReadAllText(filename);
                _players = JsonConvert.DeserializeObject<List<Player>>(json) ?? new List<Player>();
             }
             else
@@ -283,10 +289,9 @@ namespace laba
         {
             public static void SavePlayersToFile(List<Player> players, string filename)
             {
-                string? json = JsonConvert.SerializeObject(players);
+                string json = JsonConvert.SerializeObject(players);
                 File.WriteAllText(filename, json);
             }
         }
     }
 }
-
