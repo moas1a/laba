@@ -36,6 +36,11 @@ namespace laba
 
     class Program
     {
+        private const string PlayersFileName = "players.json";
+        private const int InitialSticks = 20;
+        private const int MinComputerMove = 1;
+        private const int MaxSticksPerTurn = 3;
+        private const int WinningSticksCount = 0;
         // Инициализация и объявление переменных
         private static int _sticks;
         private static int _sticksTaken;
@@ -47,7 +52,7 @@ namespace laba
         static void Main()
         {
             // Загрузка игроков из файла
-            LoadPlayersFromFile("players.json");
+            LoadPlayersFromFile(); // Измененный вызов метода без аргументов
             Console.WriteLine("Добро пожаловать в игру Ним!");
             
             // Запускаем игру и отображаем главное меню
@@ -68,11 +73,11 @@ namespace laba
                 {
                     case 1:
                         PlayGame();
-                        JsonHelper.SavePlayersToFile(_players, "players.json");
+                        JsonHelper.SavePlayersToFile(_players, PlayersFileName);
                         break;
                     case 2:
                         CreateProfile();
-                        JsonHelper.SavePlayersToFile(_players, "players.json");
+                        JsonHelper.SavePlayersToFile(_players, PlayersFileName);
                         break;
                     case 3:
                         ShowLeaderboard();
@@ -140,7 +145,7 @@ namespace laba
 
             if (answer == "y")
                 {
-                    _sticks = 20 - _players[profileIndex].GameProgress;
+                    _sticks = InitialSticks - _players[profileIndex].GameProgress;
                     _currentPlayer = _players[profileIndex].GameProgress % 2 + 1;
                     Console.WriteLine("Прогресс игры успешно загружен.");
                     isLoaded = true;
@@ -186,7 +191,7 @@ namespace laba
 
                 _sticks -= _sticksTaken;
 
-                if (_sticks == 0)
+                if (_sticks == WinningSticksCount)
                 {
                     Console.WriteLine("Игрок " + _currentPlayer + " проиграл!");
                     Console.WriteLine("Количество ходов игрока " + _currentPlayer + ": " + playerMoves);
@@ -216,24 +221,20 @@ namespace laba
         //     }
         // }
         
-        static void SaveTheGame(int? profileIndex, List<Player> players) //сохраняем прогресс игры для определенного профиля
+        static void SaveTheGame(int? profileIndex, List<Player> players)
         {
-            if (profileIndex.HasValue) // Проверяем, что "profileIndex" имеет значение. Если это так, то используем его для получения конкретного игрового профиля из списка "players".
+            if (profileIndex.HasValue && profileIndex.Value >= 0 && profileIndex.Value < players.Count)
             {
-                int index = profileIndex.Value;
-
-                if (index >= 0 && index < players.Count) // Проверяем, что индекс находится в допустимом диапазоне.
-                {
-                    players[index].GameProgress = 20 - _sticks;
-                    JsonHelper.SavePlayersToFile(players, "players.json");
-                    Console.WriteLine("\nПрогресс игры сохранен!");
-                }
-                else
-                {
-                    Console.WriteLine("\nНеверный индекс профиля!");
-                }
+                players[profileIndex.Value].GameProgress = InitialSticks - _sticks;
+                JsonHelper.SavePlayersToFile(players, PlayersFileName);
+                Console.WriteLine("\nПрогресс игры сохранен!");
+            }
+            else
+            {
+                Console.WriteLine("\nНеверный индекс профиля!");
             }
         }
+
 
         static int GetValidInput(int min, int max, bool isGame = false, int? profileIndex = null) // проверка сохраненной игры по указонному индексу
         {
@@ -257,7 +258,7 @@ namespace laba
 
         static int GetComputerMove() //создаем ограничение компьютера по выбору палочек
         {
-            int taken = Random.Next(1, Math.Min(3, _sticks));
+            int taken = Random.Next(MinComputerMove, Math.Min(MaxSticksPerTurn, _sticks));
             return taken;
         }
 
@@ -273,18 +274,20 @@ namespace laba
             _players.Add(player);
         }
 
-        private static void LoadPlayersFromFile(string filename) //загрузка данных об игроках из файла в программу
+        private static void LoadPlayersFromFile()
         {
-            if (File.Exists(filename))
+            // Теперь используем константу PlayersFileName
+            if (File.Exists(PlayersFileName))
             {
-                string json = File.ReadAllText(filename);
-               _players = JsonConvert.DeserializeObject<List<Player>>(json) ?? new List<Player>();
+                string json = File.ReadAllText(PlayersFileName);
+                _players = JsonConvert.DeserializeObject<List<Player>>(json) ?? new List<Player>();
             }
             else
             {
-               _players = new List<Player>();
+                _players = new List<Player>();
             }
         }
+        
         public static class JsonHelper //сохраняем список игроков 
         {
             public static void SavePlayersToFile(List<Player> players, string filename)
