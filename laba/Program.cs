@@ -1,40 +1,40 @@
-﻿using Newtonsoft.Json;// Использование библиотеки Newtonsoft для работы с JSON-форматом
-
+﻿using Newtonsoft.Json;
+// Использование библиотеки Newtonsoft для работы с JSON-форматом
 
 namespace laba
 {
-    /*  // Определение класса Player
-      public class Player
-      {
-          // Свойства объектов Player
-          public string Name { get; set; }
-          public string Password { get; set; }
-          public int TotalMoves { get; set; }
-          public int WinsCount { get; set; }
-          public int GameProgress { get; set; }
-
-          // Конструктор Player с проверкой на Null значение
-          public Player(string name, string password)
-          {
-              Name = name ?? throw new ArgumentNullException(nameof(name));
-              Password = password ?? throw new ArgumentNullException(nameof(password));
-              TotalMoves = 0;
-              WinsCount = 0;
-              GameProgress = 0;
-          }
-
-          // Метод для подсчета среднего кол-ва ходов на победу
-          public float AverageMovesPerWin()
-          {
-              if (WinsCount == 0) return TotalMoves;
-              return (float) TotalMoves / WinsCount;
-          }
-      }
-    */
+    // Определение класса Player
+    public class Player
+    {
+        // Свойства объектов Player
+        public string Name { get; set; }
+        public string Password { get; set; }
+        public int TotalMoves { get; set; }
+        public int WinsCount { get; set; }
+        public int GameProgress { get; set; }
+        
+        // Конструктор Player с проверкой на Null значение
+        public Player(string name, string password)
+        {
+            Name = name ?? throw new ArgumentNullException(nameof(name));
+            Password = password ?? throw new ArgumentNullException(nameof(password));
+            TotalMoves = 0;
+            WinsCount = 0;
+            GameProgress = 0;
+        }
+        
+        // Метод для подсчета среднего кол-ва ходов на победу
+        public float AverageMovesPerWin()
+        {
+            if (WinsCount == 0) return TotalMoves;
+            return (float) TotalMoves / WinsCount;
+        }
+    }
+    
     // Класс Program с логикой игры
 
-    /*
-    class Game
+
+    class Program
     {
         // Инициализация и объявление переменных
         private static int _sticks;
@@ -86,216 +86,212 @@ namespace laba
 
             Console.ReadLine();
         }
-    */
-    /*
-            static void ShowLeaderboard() //показать таблицу лидеров
+
+        static void ShowLeaderboard() //показать таблицу лидеров
+        {
+            if (_players.Count == 0)
             {
-                if (_players.Count == 0)
-                {
-                    Console.WriteLine("Нет доступных профилей.");
-                    return;
-                }
-
-                var sortedPlayers = _players.OrderBy(p => p.AverageMovesPerWin()).ToList();
-                Console.WriteLine("\nТаблица лидеров:");
-                for (var i = 0; i < sortedPlayers.Count; i++)
-                {
-                    Console.WriteLine(
-                        $"{i + 1}. {sortedPlayers[i].Name} - среднее число ходов за игру: {sortedPlayers[i].AverageMovesPerWin()}");
-                }
-            }
-    */
-    /*
-            static void PlayGame() //начать игру
-            {
-                bool isLoaded = false;
-
-                if (_players.Count == 0)
-                {
-                    Console.WriteLine("Нет доступных профилей. Создайте новый профиль.");
-                    return;
-                }
-
-                Console.WriteLine("\nВыберите профиль:");
-
-                for (int i = 0; i < _players.Count; i++)
-                {
-                    Console.WriteLine($"{i + 1}. {_players[i].Name}");
-                }
-
-                int profileIndex = GetValidInput(1, _players.Count) - 1;
-
-                Console.Write("Введите пароль: ");
-                string? password = Console.ReadLine();
-
-                if (password != _players[profileIndex].Password)
-                {
-                    Console.WriteLine("Неверный пароль. Игра не может быть начата.");
-                    return;
-                }
-
-                if (_players[profileIndex].GameProgress > 0)
-                {
-                    Console.WriteLine("Обнаружен прогресс игры. Загрузить? (Y/N)");
-
-                    string? answer = Console.ReadLine()?.ToLower();
-
-                if (answer == "y")
-                    {
-                        _sticks = 20 - _players[profileIndex].GameProgress;
-                        _currentPlayer = _players[profileIndex].GameProgress % 2 + 1;
-                        Console.WriteLine("Прогресс игры успешно загружен.");
-                        isLoaded = true;
-                    }
-                    else
-                    {
-                        _players[profileIndex].GameProgress = 0;
-                        Console.WriteLine("Прогресс игры сброшен.");
-                    }
-
-                }
-
-                if (!isLoaded) { 
-                    _sticks = 20;
-                    _currentPlayer = 1;
-                }
-
-                Console.WriteLine("\nИгра началась!");
-
-                int playerMoves = 0;
-
-                while (_sticks > 0)
-                {
-                    Console.WriteLine("\nНа столе осталось " + _sticks + " палочек.");
-
-                    if (_currentPlayer == 1)
-                    {
-                        Console.Write("Ваш ход. Сколько палочек вы хотите взять (1-3)? ");
-                        var inputForValidation = GetValidInput(1, 3, true, profileIndex);
-                        if (inputForValidation == -1) return;
-                        _sticksTaken = inputForValidation;
-                    }
-                    else
-                    {
-                        _sticksTaken = GetComputerMove();
-                        Console.WriteLine("Ход компьютера: " + _sticksTaken);
-                    }
-
-                    if (_currentPlayer == 1)
-                    {
-                        playerMoves++; // увеличиваем количество ходов игрока
-                    }
-
-                    _sticks -= _sticksTaken;
-
-                    if (_sticks == 0)
-                    {
-                        Console.WriteLine("Игрок " + _currentPlayer + " проиграл!");
-                        Console.WriteLine("Количество ходов игрока " + _currentPlayer + ": " + playerMoves);
-
-                        if (!(profileIndex >= _players.Count))
-                        {
-                            _players[profileIndex].TotalMoves += playerMoves;
-                            _players[profileIndex].GameProgress = 0;
-                        }
-
-                        if (_currentPlayer == 1) _players[profileIndex].WinsCount++;
-
-                        return;
-                    }
-
-                    _currentPlayer = _currentPlayer == 1 ? 2 : 1; // меняем игрока
-                }
-            }
-        */
-    // static void SaveTheGame(int? profileIndex, List<Player> _players) //сохраняем прогресс игры для определенного профиля
-    // {
-    //     if (profileIndex != null) // Проверяется, что "profileIndex" не равен нулю. Если "profileIndex" не равен нулю, то он используется для получения конкретного игрового профиля из списка "players".
-    //     {
-    //         _players[index: profileIndex.Value].GameProgress = 20 - _sticks;
-    //         JsonHelper.SavePlayersToFile(_players, "players.json");
-    //         Console.WriteLine("\nПрогресс игры сохранен!");
-    //     }
-    // }
-    /*        
-            static void SaveTheGame(int? profileIndex, List<Player> players) //сохраняем прогресс игры для определенного профиля
-            {
-                if (profileIndex.HasValue) // Проверяем, что "profileIndex" имеет значение. Если это так, то используем его для получения конкретного игрового профиля из списка "players".
-                {
-                    int index = profileIndex.Value;
-
-                    if (index >= 0 && index < players.Count) // Проверяем, что индекс находится в допустимом диапазоне.
-                    {
-                        players[index].GameProgress = 20 - _sticks;
-                        JsonHelper.SavePlayersToFile(players, "players.json");
-                        Console.WriteLine("\nПрогресс игры сохранен!");
-                    }
-                    else
-                    {
-                        Console.WriteLine("\nНеверный индекс профиля!");
-                    }
-                }
+                Console.WriteLine("Нет доступных профилей.");
+                return;
             }
 
-            static int GetValidInput(int min, int max, bool isGame = false, int? profileIndex = null) // проверка сохраненной игры по указонному индексу
+            var sortedPlayers = _players.OrderBy(p => p.AverageMovesPerWin()).ToList();
+            Console.WriteLine("\nТаблица лидеров:");
+            for (var i = 0; i < sortedPlayers.Count; i++)
             {
-                ConsoleKeyInfo keyInfo;
+                Console.WriteLine(
+                    $"{i + 1}. {sortedPlayers[i].Name} - среднее число ходов за игру: {sortedPlayers[i].AverageMovesPerWin()}");
+            }
+        }
 
-                do
+        static void PlayGame() //начать игру
+        {
+            bool isLoaded = false;
+
+            if (_players.Count == 0)
+            {
+                Console.WriteLine("Нет доступных профилей. Создайте новый профиль.");
+                return;
+            }
+
+            Console.WriteLine("\nВыберите профиль:");
+
+            for (int i = 0; i < _players.Count; i++)
+            {
+                Console.WriteLine($"{i + 1}. {_players[i].Name}");
+            }
+
+            int profileIndex = GetValidInput(1, _players.Count) - 1;
+
+            Console.Write("Введите пароль: ");
+            string? password = Console.ReadLine();
+
+            if (password != _players[profileIndex].Password)
+            {
+                Console.WriteLine("Неверный пароль. Игра не может быть начата.");
+                return;
+            }
+
+            if (_players[profileIndex].GameProgress > 0)
+            {
+                Console.WriteLine("Обнаружен прогресс игры. Загрузить? (Y/N)");
+
+                string? answer = Console.ReadLine()?.ToLower();
+
+            if (answer == "y")
                 {
-                    keyInfo = Console.ReadKey(intercept: true);
-
-                    // Обработка Ctrl + S для сохранения игры
-                    if (keyInfo.Modifiers == ConsoleModifiers.Control && keyInfo.Key == ConsoleKey.S && isGame)
-                    {
-                        SaveTheGame(profileIndex, _players);
-                        return -1;
-                    }
-
-                } while (!int.TryParse(keyInfo.KeyChar.ToString(), out int input) || input < min || input > max);
-
-                return int.Parse(keyInfo.KeyChar.ToString());
-            }
-
-            static int GetComputerMove() //создаем ограничение компьютера по выбору палочек
-            {
-                int taken = Random.Next(1, Math.Min(3, _sticks));
-                return taken;
-            }
-
-            static void CreateProfile() // создаем профиль
-            {
-                Console.Write("Введите имя нового игрока: ");
-                string name = Console.ReadLine() ??string.Empty;
-
-                Console.Write("Введите пароль нового игрока: ");
-                string password = Console.ReadLine() ??string.Empty;
-
-                Player player = new(name, password);
-                _players.Add(player);
-            }
-
-            private static void LoadPlayersFromFile(string filename) //загрузка данных об игроках из файла в программу
-            {
-                if (File.Exists(filename))
-                {
-                    string json = File.ReadAllText(filename);
-                   _players = JsonConvert.DeserializeObject<List<Player>>(json) ?? new List<Player>();
+                    _sticks = 20 - _players[profileIndex].GameProgress;
+                    _currentPlayer = _players[profileIndex].GameProgress % 2 + 1;
+                    Console.WriteLine("Прогресс игры успешно загружен.");
+                    isLoaded = true;
                 }
                 else
                 {
-                   _players = new List<Player>();
+                    _players[profileIndex].GameProgress = 0;
+                    Console.WriteLine("Прогресс игры сброшен.");
                 }
+                
             }
-            public static class JsonHelper //сохраняем список игроков 
+
+            if (!isLoaded) { 
+                _sticks = 20;
+                _currentPlayer = 1;
+            }
+
+            Console.WriteLine("\nИгра началась!");
+
+            int playerMoves = 0;
+
+            while (_sticks > 0)
             {
-                public static void SavePlayersToFile(List<Player> players, string filename)
+                Console.WriteLine("\nНа столе осталось " + _sticks + " палочек.");
+
+                if (_currentPlayer == 1)
                 {
-                    string json = JsonConvert.SerializeObject(players);
-                    File.WriteAllText(filename, json);
+                    Console.Write("Ваш ход. Сколько палочек вы хотите взять (1-3)? ");
+                    var inputForValidation = GetValidInput(1, 3, true, profileIndex);
+                    if (inputForValidation == -1) return;
+                    _sticksTaken = inputForValidation;
+                }
+                else
+                {
+                    _sticksTaken = GetComputerMove();
+                    Console.WriteLine("Ход компьютера: " + _sticksTaken);
+                }
+
+                if (_currentPlayer == 1)
+                {
+                    playerMoves++; // увеличиваем количество ходов игрока
+                }
+
+                _sticks -= _sticksTaken;
+
+                if (_sticks == 0)
+                {
+                    Console.WriteLine("Игрок " + _currentPlayer + " проиграл!");
+                    Console.WriteLine("Количество ходов игрока " + _currentPlayer + ": " + playerMoves);
+
+                    if (!(profileIndex >= _players.Count))
+                    {
+                        _players[profileIndex].TotalMoves += playerMoves;
+                        _players[profileIndex].GameProgress = 0;
+                    }
+
+                    if (_currentPlayer == 1) _players[profileIndex].WinsCount++;
+
+                    return;
+                }
+
+                _currentPlayer = _currentPlayer == 1 ? 2 : 1; // меняем игрока
+            }
+        }
+
+        // static void SaveTheGame(int? profileIndex, List<Player> _players) //сохраняем прогресс игры для определенного профиля
+        // {
+        //     if (profileIndex != null) // Проверяется, что "profileIndex" не равен нулю. Если "profileIndex" не равен нулю, то он используется для получения конкретного игрового профиля из списка "players".
+        //     {
+        //         _players[index: profileIndex.Value].GameProgress = 20 - _sticks;
+        //         JsonHelper.SavePlayersToFile(_players, "players.json");
+        //         Console.WriteLine("\nПрогресс игры сохранен!");
+        //     }
+        // }
+        
+        static void SaveTheGame(int? profileIndex, List<Player> players) //сохраняем прогресс игры для определенного профиля
+        {
+            if (profileIndex.HasValue) // Проверяем, что "profileIndex" имеет значение. Если это так, то используем его для получения конкретного игрового профиля из списка "players".
+            {
+                int index = profileIndex.Value;
+
+                if (index >= 0 && index < players.Count) // Проверяем, что индекс находится в допустимом диапазоне.
+                {
+                    players[index].GameProgress = 20 - _sticks;
+                    JsonHelper.SavePlayersToFile(players, "players.json");
+                    Console.WriteLine("\nПрогресс игры сохранен!");
+                }
+                else
+                {
+                    Console.WriteLine("\nНеверный индекс профиля!");
                 }
             }
         }
+
+        static int GetValidInput(int min, int max, bool isGame = false, int? profileIndex = null) // проверка сохраненной игры по указонному индексу
+        {
+            ConsoleKeyInfo keyInfo;
+
+            do
+            {
+                keyInfo = Console.ReadKey(intercept: true);
+
+                // Обработка Ctrl + S для сохранения игры
+                if (keyInfo.Modifiers == ConsoleModifiers.Control && keyInfo.Key == ConsoleKey.S && isGame)
+                {
+                    SaveTheGame(profileIndex, _players);
+                    return -1;
+                }
+
+            } while (!int.TryParse(keyInfo.KeyChar.ToString(), out int input) || input < min || input > max);
+
+            return int.Parse(keyInfo.KeyChar.ToString());
+        }
+
+        static int GetComputerMove() //создаем ограничение компьютера по выбору палочек
+        {
+            int taken = Random.Next(1, Math.Min(3, _sticks));
+            return taken;
+        }
+
+        static void CreateProfile() // создаем профиль
+        {
+            Console.Write("Введите имя нового игрока: ");
+            string name = Console.ReadLine() ??string.Empty;
+
+            Console.Write("Введите пароль нового игрока: ");
+            string password = Console.ReadLine() ??string.Empty;
+
+            Player player = new(name, password);
+            _players.Add(player);
+        }
+
+        private static void LoadPlayersFromFile(string filename) //загрузка данных об игроках из файла в программу
+        {
+            if (File.Exists(filename))
+            {
+                string json = File.ReadAllText(filename);
+               _players = JsonConvert.DeserializeObject<List<Player>>(json) ?? new List<Player>();
+            }
+            else
+            {
+               _players = new List<Player>();
+            }
+        }
+        public static class JsonHelper //сохраняем список игроков 
+        {
+            public static void SavePlayersToFile(List<Player> players, string filename)
+            {
+                string json = JsonConvert.SerializeObject(players);
+                File.WriteAllText(filename, json);
+            }
+        }
     }
-    */
 }
