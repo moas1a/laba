@@ -3,6 +3,89 @@
 
 namespace laba
 {
+    public class PlayerManager
+    {
+        private List<Player> _players;
+        private const string PlayersFileName = "players.json";
+
+        public PlayerManager()
+        {
+            _players = LoadPlayersFromFile();
+        }
+
+        public List<Player> GetPlayers()
+        {
+            return _players;
+        }
+        private List<Player> LoadPlayersFromFile()
+        {
+            if (File.Exists(PlayersFileName))
+            {
+                string json = File.ReadAllText(PlayersFileName);
+                return JsonConvert.DeserializeObject<List<Player>>(json) ?? new List<Player>();
+            }
+            return new List<Player>();
+        }
+
+        public void SavePlayersToFile()
+        {
+            string json = JsonConvert.SerializeObject(_players);
+            File.WriteAllText(PlayersFileName, json);
+        }
+
+        public void CreateProfile()
+        {
+            Console.Write("Введите имя нового игрока: ");
+            string name = Console.ReadLine() ?? string.Empty;
+
+            if (_players.Any(p => p.Name == name))
+            {
+                Console.WriteLine("Игрок с таким именем уже существует. Попробуйте другое имя.");
+                return;
+            }
+
+            Console.Write("Введите пароль нового игрока: ");
+            string password = Console.ReadLine() ?? string.Empty;
+
+            Player player = new Player(name, password);
+            _players.Add(player);
+            Console.WriteLine("Новый профиль создан.");
+            SavePlayersToFile();
+        }
+
+        public void DeletePlayer()
+        {
+            if (_players.Count == 0)
+            {
+                Console.WriteLine("Нет доступных профилей для удаления.");
+                return;
+            }
+
+            Console.WriteLine("Выберите профиль для удаления:");
+            for (int i = 0; i < _players.Count; i++)
+            {
+                Console.WriteLine($"{i + 1}. {_players[i].Name}");
+            }
+
+            int profileIndex = GetValidInput(1, _players.Count) - 1;
+
+            _players.RemoveAt(profileIndex);
+            Console.WriteLine("Профиль успешно удален.");
+            SavePlayersToFile();
+        }
+
+        private int GetValidInput(int min, int max)
+        {
+            int input;
+            do
+            {
+                Console.Write("Введите число: ");
+            } while (!int.TryParse(Console.ReadLine(), out input) || input < min || input > max);
+
+            return input;
+        }
+    }
+
     // Определение класса Player
     public class Player
     {
@@ -36,53 +119,49 @@ namespace laba
 
     class Program
     {
-        private const string PlayersFileName = "players.json";
         private const int InitialSticks = 20;
         private const int MinComputerMove = 1;
         private const int MaxSticksPerTurn = 3;
         private const int WinningSticksCount = 0;
-        // Инициализация и объявление переменных
+
         private static int _sticks;
         private static int _sticksTaken;
         private static int _currentPlayer;
         private static readonly Random Random = new();
-        private static List<Player> _players = new();
 
-        // Основной метод входа в программу
+        private static PlayerManager _playerManager = new PlayerManager();
+
         static void Main()
         {
-            // Загрузка игроков из файла
-            LoadPlayersFromFile(); // Измененный вызов метода без аргументов
             Console.WriteLine("Добро пожаловать в игру Ним!");
-            
-            // Запускаем игру и отображаем главное меню
+
             bool gameRunning = true;
-            
-            // Главный игровой цикл
             while (gameRunning)
             {
                 Console.WriteLine("\nВыберите действие:");
                 Console.WriteLine("1. Начать игру");
                 Console.WriteLine("2. Новый игрок");
-                Console.WriteLine("3. Список Лидеров");
-                Console.WriteLine("4. Выход из игры");
+                Console.WriteLine("3. Список лидеров");
+                Console.WriteLine("4. Удалить игрока");
+                Console.WriteLine("5. Выход из игры");
 
-                int choice = GetValidInput(1, 4);
+                int choice = GetValidInput(1, 5);
 
                 switch (choice)
                 {
                     case 1:
                         PlayGame();
-                        JsonHelper.SavePlayersToFile(_players, PlayersFileName);
                         break;
                     case 2:
-                        CreateProfile();
-                        JsonHelper.SavePlayersToFile(_players, PlayersFileName);
+                        _playerManager.CreateProfile();
                         break;
                     case 3:
                         ShowLeaderboard();
                         break;
                     case 4:
+                        _playerManager.DeletePlayer();
+                        break;
+                    case 5:
                         Console.WriteLine("Выход из игры.");
                         gameRunning = false;
                         break;
@@ -92,20 +171,21 @@ namespace laba
             Console.ReadLine();
         }
 
-        static void ShowLeaderboard() //показать таблицу лидеров
+        static void ShowLeaderboard()
         {
-            if (_players.Count == 0)
+            // Доступ к _players теперь через _playerManager
+            var players = _playerManager.GetPlayers(); // Предполагаем, что такой метод есть в PlayerManager
+            if (players.Count == 0)
             {
                 Console.WriteLine("Нет доступных профилей.");
                 return;
             }
 
-            var sortedPlayers = _players.OrderBy(p => p.AverageMovesPerWin()).ToList();
+            var sortedPlayers = players.OrderBy(p => p.AverageMovesPerWin()).ToList();
             Console.WriteLine("\nТаблица лидеров:");
             for (var i = 0; i < sortedPlayers.Count; i++)
             {
-                Console.WriteLine(
-                    $"{i + 1}. {sortedPlayers[i].Name} - среднее число ходов за игру: {sortedPlayers[i].AverageMovesPerWin()}");
+                Console.WriteLine($"{i + 1}. {sortedPlayers[i].Name} - среднее число ходов за игру: {sortedPlayers[i].AverageMovesPerWin()}");
             }
         }
 
@@ -113,7 +193,9 @@ namespace laba
         {
             bool isLoaded = false;
 
-            if (_players.Count == 0)
+            var players = _playerManager.GetPlayers();
+    
+            if (players.Count == 0)
             {
                 Console.WriteLine("Нет доступных профилей. Создайте новый профиль.");
                 return;
@@ -121,23 +203,23 @@ namespace laba
 
             Console.WriteLine("\nВыберите профиль:");
 
-            for (int i = 0; i < _players.Count; i++)
+            for (int i = 0; i < _playerManager.GetPlayers().Count; i++)
             {
-                Console.WriteLine($"{i + 1}. {_players[i].Name}");
+                Console.WriteLine($"{i + 1}. {_playerManager.GetPlayers()[i].Name}");
             }
 
-            int profileIndex = GetValidInput(1, _players.Count) - 1;
+            int profileIndex = GetValidInput(1, _playerManager.GetPlayers().Count) - 1;
 
             Console.Write("Введите пароль: ");
             string? password = Console.ReadLine();
 
-            if (password != _players[profileIndex].Password)
+            if (password != _playerManager.GetPlayers()[profileIndex].Password)
             {
                 Console.WriteLine("Неверный пароль. Игра не может быть начата.");
                 return;
             }
 
-            if (_players[profileIndex].GameProgress > 0)
+            if (_playerManager.GetPlayers()[profileIndex].GameProgress > 0)
             {
                 Console.WriteLine("Обнаружен прогресс игры. Загрузить? (Y/N)");
 
@@ -145,14 +227,14 @@ namespace laba
 
             if (answer == "y")
                 {
-                    _sticks = InitialSticks - _players[profileIndex].GameProgress;
-                    _currentPlayer = _players[profileIndex].GameProgress % 2 + 1;
+                    _sticks = InitialSticks - _playerManager.GetPlayers()[profileIndex].GameProgress;
+                    _currentPlayer = _playerManager.GetPlayers()[profileIndex].GameProgress % 2 + 1;
                     Console.WriteLine("Прогресс игры успешно загружен.");
                     isLoaded = true;
                 }
                 else
                 {
-                    _players[profileIndex].GameProgress = 0;
+                    _playerManager.GetPlayers()[profileIndex].GameProgress = 0;
                     Console.WriteLine("Прогресс игры сброшен.");
                 }
                 
@@ -196,13 +278,13 @@ namespace laba
                     Console.WriteLine("Игрок " + _currentPlayer + " проиграл!");
                     Console.WriteLine("Количество ходов игрока " + _currentPlayer + ": " + playerMoves);
 
-                    if (!(profileIndex >= _players.Count))
+                    if (!(profileIndex >= _playerManager.GetPlayers().Count))
                     {
-                        _players[profileIndex].TotalMoves += playerMoves;
-                        _players[profileIndex].GameProgress = 0;
+                        _playerManager.GetPlayers()[profileIndex].TotalMoves += playerMoves;
+                        _playerManager.GetPlayers()[profileIndex].GameProgress = 0;
                     }
 
-                    if (_currentPlayer == 1) _players[profileIndex].WinsCount++;
+                    if (_currentPlayer == 1) _playerManager.GetPlayers()[profileIndex].WinsCount++;
 
                     return;
                 }
@@ -210,23 +292,13 @@ namespace laba
                 _currentPlayer = _currentPlayer == 1 ? 2 : 1; // меняем игрока
             }
         }
-
-        // static void SaveTheGame(int? profileIndex, List<Player> _players) //сохраняем прогресс игры для определенного профиля
-        // {
-        //     if (profileIndex != null) // Проверяется, что "profileIndex" не равен нулю. Если "profileIndex" не равен нулю, то он используется для получения конкретного игрового профиля из списка "players".
-        //     {
-        //         _players[index: profileIndex.Value].GameProgress = 20 - _sticks;
-        //         JsonHelper.SavePlayersToFile(_players, "players.json");
-        //         Console.WriteLine("\nПрогресс игры сохранен!");
-        //     }
-        // }
         
         static void SaveTheGame(int? profileIndex, List<Player> players)
         {
             if (profileIndex.HasValue && profileIndex.Value >= 0 && profileIndex.Value < players.Count)
             {
                 players[profileIndex.Value].GameProgress = InitialSticks - _sticks;
-                JsonHelper.SavePlayersToFile(players, PlayersFileName);
+                _playerManager.SavePlayersToFile();
                 Console.WriteLine("\nПрогресс игры сохранен!");
             }
             else
@@ -247,7 +319,7 @@ namespace laba
                 // Обработка Ctrl + S для сохранения игры
                 if (keyInfo.Modifiers == ConsoleModifiers.Control && keyInfo.Key == ConsoleKey.S && isGame)
                 {
-                    SaveTheGame(profileIndex, _players);
+                    SaveTheGame(profileIndex, _playerManager.GetPlayers());
                     return -1;
                 }
 
@@ -260,32 +332,6 @@ namespace laba
         {
             int taken = Random.Next(MinComputerMove, Math.Min(MaxSticksPerTurn, _sticks));
             return taken;
-        }
-
-        static void CreateProfile() // создаем профиль
-        {
-            Console.Write("Введите имя нового игрока: ");
-            string name = Console.ReadLine() ??string.Empty;
-
-            Console.Write("Введите пароль нового игрока: ");
-            string password = Console.ReadLine() ??string.Empty;
-
-            Player player = new(name, password);
-            _players.Add(player);
-        }
-
-        private static void LoadPlayersFromFile()
-        {
-            // Теперь используем константу PlayersFileName
-            if (File.Exists(PlayersFileName))
-            {
-                string json = File.ReadAllText(PlayersFileName);
-                _players = JsonConvert.DeserializeObject<List<Player>>(json) ?? new List<Player>();
-            }
-            else
-            {
-                _players = new List<Player>();
-            }
         }
         
         public static class JsonHelper //сохраняем список игроков 
